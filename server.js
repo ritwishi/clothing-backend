@@ -13,35 +13,29 @@ dotenv.config();
 const app = express();
 
 // -------------------------
-//  Connect to MongoDB
+//  Connect MongoDB
 // -------------------------
 connectDB();
 
 // -------------------------
-//  Trust Proxy (Required for Deployments)
-// -------------------------
-if (process.env.NODE_ENV === "production") {
-  app.set("trust proxy", 1); 
-}
+//  Trust Proxy (Render/Vercel)
+# -------------------------
+app.set("trust proxy", 1);
 
 // -------------------------
-//  CORS CONFIG (Correct Version)
+//  CORS CONFIG
 // -------------------------
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
   "http://127.0.0.1:5173",
+  "https://clothing-frontend-six.vercel.app" // your frontend URL
 ];
-
-// Add production frontend URL if exists
-if (process.env.FRONTEND_URL) {
-  allowedOrigins.push(process.env.FRONTEND_URL);
-}
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin) return callback(null, true); // Allow server-to-server, tools
+      if (!origin) return callback(null, true);             
       if (allowedOrigins.includes(origin)) return callback(null, true);
       return callback(new Error("CORS blocked: " + origin));
     },
@@ -78,10 +72,10 @@ app.get("/health", (req, res) => {
 });
 
 // -------------------------
-//  404 Handler
+//  404
 // -------------------------
 app.use((req, res) => {
-  res.status(404).json({ message: "Route not found" });
+  res.status(404).json({ message: "Route not found ❌" });
 });
 
 // -------------------------
