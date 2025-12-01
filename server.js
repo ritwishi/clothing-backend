@@ -3,10 +3,13 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import { connectDB } from "./config/db.js";
+
 import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
+import seedRoutes from "./routes/seedRoutes.js";   // ✅ TEMP SEED ROUTE
+
 import { errorHandler } from "./middleware/errorHandler.js";
 
 dotenv.config();
@@ -23,31 +26,31 @@ connectDB();
 app.set("trust proxy", 1);
 
 // -------------------------
-// CORS — FINAL VERSION (supports ALL Vercel preview URLs)
+// CORS — FINAL VERSION
 // -------------------------
 const baseAllowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
   "http://127.0.0.1:5173",
-  "https://clothing-frontend-six.vercel.app" // your production frontend
+  "https://clothing-frontend-six.vercel.app" // production frontend
 ];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin) return callback(null, true); // Allow server-to-server or Postman
+      if (!origin) return callback(null, true); // Allow Postman or same-server
 
-      // 1. Allow local + main frontend
+      // Allow localhost + main frontend
       if (baseAllowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      // 2. Allow ANY Vercel preview deployment (automatic)
+      // Allow ANY vercel preview deployment
       if (/https:\/\/clothing-frontend-.*\.vercel\.app/.test(origin)) {
         return callback(null, true);
       }
 
-      // 3. Otherwise block
+      // Block others
       return callback(new Error("CORS blocked: " + origin));
     },
     credentials: true,
@@ -76,6 +79,11 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 
 // -------------------------
+// TEMP — Seed Route (Remove after running ONCE)
+// -------------------------
+app.use("/api/seed", seedRoutes);
+
+// -------------------------
 // Health Check
 // -------------------------
 app.get("/health", (req, res) => {
@@ -90,7 +98,7 @@ app.use((req, res) => {
 });
 
 // -------------------------
-// Error Handler
+// Global Error Handler
 // -------------------------
 app.use(errorHandler);
 
@@ -100,6 +108,6 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✓ Server running on port ${PORT}`);
-  console.log("✓ Allowed Origins (base):", baseAllowedOrigins);
-  console.log("✓ Dynamic Vercel Preview URLs Enabled");
+  console.log("✓ Allowed Origins:", baseAllowedOrigins);
+  console.log("✓ Dynamic Vercel Preview URL support enabled");
 });
