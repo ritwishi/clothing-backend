@@ -14,7 +14,7 @@ const products = [
     sizes: ['S', 'M', 'L', 'XL'],
     stock: 50,
   },
-  
+  // paste ALL other products here...
 ];
 
 // ---------------- SEED API ROUTE ----------------
