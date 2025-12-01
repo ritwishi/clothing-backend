@@ -1,0 +1,98 @@
+@baseUrl = http://localhost:5000
+
+###
+# Health check
+GET {{baseUrl}}/health
+
+###
+# Register new user
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "testuser@example.com",
+  "password": "password123",
+  "confirmPassword": "password123"
+}
+
+###
+# Login
+# @name loginRequest
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "testuser@example.com",
+  "password": "password123"
+}
+
+###
+# Get current user (uses cookie from login response automatically)
+GET {{baseUrl}}/api/auth/me
+
+###
+# Get products with filters
+GET {{baseUrl}}/api/products?search=shirt&category=Men&size=M&minPrice=200&maxPrice=2000&page=1&limit=5
+
+###
+# Get single product (replace ID after first run)
+GET {{baseUrl}}/api/products/01
+
+###
+# Add to cart (logged-in)
+POST {{baseUrl}}/api/cart/add
+Content-Type: application/json
+
+{
+  "productId": "PUT_PRODUCT_ID_HERE",
+  "size": "M",
+  "quantity": 2
+}
+
+###
+# Get cart (logged-in)
+GET {{baseUrl}}/api/cart
+
+###
+# Update cart item quantity
+PUT {{baseUrl}}/api/cart/update
+Content-Type: application/json
+
+{
+  "productId": "PUT_PRODUCT_ID_HERE",
+  "size": "M",
+  "quantity": 3
+}
+
+###
+# Remove item from cart
+DELETE {{baseUrl}}/api/cart/remove
+Content-Type: application/json
+
+{
+  "productId": "PUT_PRODUCT_ID_HERE",
+  "size": "M"
+}
+
+###
+# Create order (mock checkout)
+POST {{baseUrl}}/api/orders
+Content-Type: application/json
+
+{
+  "shippingAddress": {
+    "street": "123 Test Street",
+    "city": "Dhanbad",
+    "state": "Jharkhand",
+    "zipcode": "826001"
+  }
+}
+
+###
+# Get my orders
+GET {{baseUrl}}/api/orders/my-orders
+
+###
+# Get single order (replace ID after first order)
+GET {{baseUrl}}/api/orders/PUT_ORDER_ID_HERE
