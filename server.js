@@ -1,4 +1,4 @@
-import express from "express";
+import express from "express"; 
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -25,15 +25,22 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
   "http://127.0.0.1:5173",
-  "https://clothing-frontend-six.vercel.app"
+  "https://clothing-frontend-six.vercel.app",
+  "https://clothing-frontend-rnd3id53j-ritwishi-projects.vercel.app"
 ];
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("CORS blocked: " + origin));
+    },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
