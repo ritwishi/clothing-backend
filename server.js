@@ -12,80 +12,58 @@ import { errorHandler } from "./middleware/errorHandler.js";
 dotenv.config();
 const app = express();
 
-// -------------------------
-//  Connect MongoDB
-// -------------------------
+// Connect MongoDB
 connectDB();
 
-// -------------------------
-//  Trust Proxy (Render/Vercel)
-# -------------------------
+// Trust proxy for Render/Vercel
 app.set("trust proxy", 1);
 
 // -------------------------
-//  CORS CONFIG
+//  CORS (FINAL WORKING VERSION)
 // -------------------------
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
   "http://127.0.0.1:5173",
-  "https://clothing-frontend-six.vercel.app" // your frontend URL
+  "https://clothing-frontend-six.vercel.app"
 ];
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);             
-      if (allowedOrigins.includes(origin)) return callback(null, true);
-      return callback(new Error("CORS blocked: " + origin));
-    },
+    origin: allowedOrigins,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// -------------------------
-//  Body Parsers
-// -------------------------
+// Body Parsers
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// -------------------------
-//  Cookies
-// -------------------------
+// Cookies
 app.use(cookieParser());
 
-// -------------------------
-//  Routes
-// -------------------------
+// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 
-// -------------------------
-//  Health Check
-// -------------------------
+// Health Check
 app.get("/health", (req, res) => {
   res.status(200).json({ message: "Server is running 🚀" });
 });
 
-// -------------------------
-//  404
-// -------------------------
+// 404
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found ❌" });
 });
 
-// -------------------------
-//  Error Handler
-// -------------------------
+// Error Handler
 app.use(errorHandler);
 
-// -------------------------
-//  Start Server
-// -------------------------
+// Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✓ Server running on port ${PORT}`);
