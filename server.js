@@ -8,7 +8,7 @@ import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
-import seedRoutes from "./routes/seedRoutes.js";   // 
+import seedRoutes from "./routes/seedRoutes.js";
 
 import { errorHandler } from "./middleware/errorHandler.js";
 
@@ -38,19 +38,19 @@ const baseAllowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin) return callback(null, true); // Allow Postman or same-server
+      if (!origin) return callback(null, true); // Allow Postman OR no-origin requests
 
-      // Allow localhost + main frontend
+      // LOCAL + PRODUCTION
       if (baseAllowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      // Allow ANY vercel preview deployment
+      // Allow ANY Vercel preview deployment:
+      // https://clothing-frontend-xxxxx.vercel.app
       if (/https:\/\/clothing-frontend-.*\.vercel\.app/.test(origin)) {
         return callback(null, true);
       }
 
-      // Block others
       return callback(new Error("CORS blocked: " + origin));
     },
     credentials: true,
@@ -77,10 +77,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
-
-// -------------------------
-// TEMP — Seed Route (Remove after running ONCE)
-// -------------------------
 app.use("/api/seed", seedRoutes);
 
 // -------------------------
@@ -106,6 +102,7 @@ app.use(errorHandler);
 // Start Server
 // -------------------------
 const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
   console.log(`✓ Server running on port ${PORT}`);
   console.log("✓ Allowed Origins:", baseAllowedOrigins);
