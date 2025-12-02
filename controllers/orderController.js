@@ -8,7 +8,13 @@ export const createOrder = async (req, res, next) => {
     const { shippingAddress } = req.body;
 
     // Validate shipping address
-    if (!shippingAddress || !shippingAddress.street || !shippingAddress.city || !shippingAddress.state || !shippingAddress.zipcode) {
+    if (
+      !shippingAddress ||
+      !shippingAddress.street ||
+      !shippingAddress.city ||
+      !shippingAddress.state ||
+      !shippingAddress.zipcode
+    ) {
       return res.status(400).json({ message: 'Please provide complete shipping address' });
     }
 
@@ -23,24 +29,23 @@ export const createOrder = async (req, res, next) => {
     let totalPrice = 0;
     const orderItems = [];
 
-    // Build order items - FIX: use item.product.price not item.price
+    // Build order items - use item.product.price (safely)
     cart.items.forEach((item) => {
-      // Validate item structure
       if (!item || !item.product) {
         console.warn('Invalid item in cart:', item);
         return;
       }
 
-      const price = item.product.price || 0;
-      const quantity = item.quantity || 1;
+      const price = (item.product && item.product.price) ? Number(item.product.price) : 0;
+      const quantity = item.quantity ? Number(item.quantity) : 1;
       const itemTotal = price * quantity;
-      
+
       totalPrice += itemTotal;
 
       orderItems.push({
         productId: item.product._id,
-        name: item.product.name,
-        size: item.size,
+        name: item.product.name || 'Unknown Product',
+        size: item.size || '',
         quantity: quantity,
         price: price,
       });
@@ -61,27 +66,32 @@ export const createOrder = async (req, res, next) => {
       orderDate: new Date(),
     });
 
-    // Send confirmation email (don't fail if email fails)
-    try {
-      const user = await User.findById(req.user.id);
-      if (user && user.email) {
-        await sendOrderConfirmationEmail(order, user);
-        console.log('✅ Order confirmation email sent to:', user.email);
+    // Fire-and-forget: send confirmation email asynchronously so it doesn't block the response
+    (async () => {
+      try {
+        const user = await User.findById(req.user.id);
+        if (user && user.email) {
+          const result = await sendOrderConfirmationEmail(order, user);
+          console.log('✅ Order confirmation email (async) result:', result);
+        } else {
+          console.warn('⚠️  No user email found for sending order confirmation');
+        }
+      } catch (emailError) {
+        console.error('⚠️  Async email sending failed (order created successfully):', emailError);
       }
-    } catch (emailError) {
-      console.error('⚠️  Email sending failed (order created successfully):', emailError.message);
-      // Continue - don't fail the order if email fails
-    }
+    })();
 
-    // Clear the cart after successful order
-    try {
-      await Cart.findByIdAndDelete(cart._id);
-      console.log('✅ Cart cleared after order');
-    } catch (cartError) {
-      console.error('⚠️  Could not clear cart:', cartError.message);
-    }
+    // Clear the cart after successful order (best-effort)
+    (async () => {
+      try {
+        await Cart.findByIdAndDelete(cart._id);
+        console.log('✅ Cart cleared after order');
+      } catch (cartError) {
+        console.error('⚠️  Could not clear cart:', cartError.message);
+      }
+    })();
 
-    // Return success response
+    // Return success response immediately
     res.status(201).json({
       success: true,
       message: 'Order created successfully',
@@ -96,9 +106,9 @@ export const createOrder = async (req, res, next) => {
     });
   } catch (error) {
     console.error('❌ Error creating order:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: error.message || 'Failed to create order' 
+      message: error.message || 'Failed to create order',
     });
   }
 };
@@ -107,7 +117,6 @@ export const getOrderById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    // Validate ID format
     if (!id) {
       return res.status(400).json({ message: 'Order ID required' });
     }
